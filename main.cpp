@@ -516,13 +516,10 @@ int LoadCfg(char *cfgname)
         else
         {
             cfg = new char[size_cfg];
-            size_t len = fread(cfg,size_cfg,1,f);
-            if (len != size_cfg)
+            if (fread(cfg,size_cfg,1,f) != 1)
             {
-            char msg[256];
-               sprintf(msg,"Can't read .bcfg file %d != %d!",len,size_cfg);
-                ErrorMsg(msg);
-                mfree(cfg);
+                ErrorMsg("Can't read .bcfg file!");
+                delete[] cfg;
             }
             else result=1;
         }
@@ -544,7 +541,7 @@ SEL_BCFG *sbtop;
 //------------------- Т9 ------------------//
 
 //Ключи для поиска по T9
-static const char table_T9Key[512]=
+static const char table_T9Key[]=
     "11111111111111111111111111111111"
     "10001**0***0000*012345678900***0"
     "0222333444555666777788899991*110"
@@ -964,7 +961,7 @@ void SaveConfig(void)
 static void maincsm_onclose(CSM_RAM *csm)
 {
     FreeWS(ews);
-    if (cfg) mfree(cfg);
+    if (cfg) delete[] cfg;
     SUBPROC((void *)ElfKiller);
 }
 
