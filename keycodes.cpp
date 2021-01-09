@@ -15,7 +15,6 @@ typedef struct
 
 extern const char *key_names[63];
 
-
 char str[10];
 int code=0;
 void OnReadraw_key(KEY_GUI *data)
@@ -64,7 +63,7 @@ void OnCreate_key(KEY_GUI *data, void *(*malloc_adr)(int))
     data->gui.state=1;
 }
 
-void method2_key(KEY_GUI *data, void (*mfree_adr)(void *))
+void OnClose_key(KEY_GUI *data, void (*mfree_adr)(void *))
 {
     FreeWS(data->ws1);
     data->gui.state=0;
@@ -78,13 +77,13 @@ void OnFocus_key(KEY_GUI *data, void *(*malloc_adr)(int), void (*mfree_adr)(void
     data->gui.state=2;
 }
 
-void method4_key(KEY_GUI *data, void (*mfree_adr)(void *))
+void OnUnfocus_key(KEY_GUI *data, void (*mfree_adr)(void *))
 {
     if (data->gui.state!=2) return;
     data->gui.state=1;
 }
 
-int method5_key(KEY_GUI *data, GUI_MSG *msg)
+int OnKey_key(KEY_GUI *data, GUI_MSG *msg)
 {
     if ((msg->gbsmsg->msg==KEY_DOWN)||(msg->gbsmsg->msg==LONG_PRESS))
     {
@@ -123,11 +122,6 @@ int method5_key(KEY_GUI *data, GUI_MSG *msg)
 }
 extern "C" void kill_data(void *p, void (*func_p)(void *));
 
-void method7_key(KEY_GUI *data, void (*mfree_adr)(void *))
-{
-    kill_data(data,mfree_adr);
-}
-
 int method8_key(void)
 {
     return(0);
@@ -142,12 +136,12 @@ const void * const gui_methods_key[11]=
 {
     (void *)OnReadraw_key,//Redraw
     (void *)OnCreate_key,	//Create
-    (void *)method2_key,	//Close
+    (void *)OnClose_key,	//Close
     (void *)OnFocus_key,	//Focus
-    (void *)method4_key,	//Unfocus
-    (void *)method5_key,	//OnKey
+    (void *)OnUnfocus_key,	//Unfocus
+    (void *)OnKey_key,	//OnKey
     0,
-    (void *)method7_key,	//Destroy
+    (void *)kill_data,	//Destroy
     (void *)method8_key,
     (void *)method9_key,
     0

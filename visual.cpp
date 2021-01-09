@@ -1,16 +1,19 @@
 #include <swilib.h>
 #include <stdlib.h>
+#include "visual.h"
 #include "rect_patcher.h"
+
 char colors[4][4]= {{0xFF,0,0,0x64},{0,0xFF,0,0x64},{0,0,0xFF,0x64},{0xC6,0xAA,0xAF,0x32}};
 char black[4]= {0x00,0x00,0x00,0x64};
 char white[4]= {0xFF,0xFF,0xFF,0x64};
 char transparent[4]= {0x00,0x00,0x00,0x00};
-extern long  strtol (const char *nptr,char **endptr,int base);
-extern unsigned long  strtoul (const char *nptr,char **endptr,int base);
+
+const char back[]="..";
+extern char picpath[];
+
 #define MIN(a,b) (a<b)?a:b
 #define MAX(a,b) (a>b)?a:b
 
-////  YDISP нам больше не нужен так как иконбар отключим
 #ifdef ELKA
 #undef YDISP
 #define   YDISP 0
@@ -46,8 +49,8 @@ void DrwImg(IMGHDR *img, int x, int y, char *pen, char *brush)
     SetColor(&drwobj,pen,brush);
     DrawObject(&drwobj);
 }
-extern char picpath[];
-void method0_rect(RECT_GUI *data)
+
+void OnReadraw_rect(RECT_GUI *data)
 {
     int scr_w=ScreenW();
     int scr_h=ScreenH();
@@ -96,19 +99,19 @@ void method0_rect(RECT_GUI *data)
 }
 
 
-void method1_rect(RECT_GUI *data, void *(*malloc_adr)(int))
+void OnCreate_rect(RECT_GUI *data, void *(*malloc_adr)(int))
 {
     data->ws1=AllocWS(256);
     data->gui.state=1;
 }
 
-void method2_rect(RECT_GUI *data, void (*mfree_adr)(void *))
+void OnClose_rect(RECT_GUI *data, void (*mfree_adr)(void *))
 {
     FreeWS(data->ws1);
     data->gui.state=0;
 }
 
-void method3_rect(RECT_GUI *data, void *(*malloc_adr)(int), void (*mfree_adr)(void *))
+void OnFocus_rect(RECT_GUI *data, void *(*malloc_adr)(int), void (*mfree_adr)(void *))
 {
 #ifdef ELKA
     DisableIconBar(1);
@@ -116,18 +119,13 @@ void method3_rect(RECT_GUI *data, void *(*malloc_adr)(int), void (*mfree_adr)(vo
     data->gui.state=2;
 }
 
-void method4_rect(RECT_GUI *data, void (*mfree_adr)(void *))
+void OnUnfocus_rect(RECT_GUI *data, void (*mfree_adr)(void *))
 {
     if (data->gui.state!=2) return;
     data->gui.state=1;
 }
-/*
-#define MIN_STEP 1
-#define MAX_STEP 8
-*/
 
-
-int method5_rect(RECT_GUI *data, GUI_MSG *msg)
+int OnKey_rect(RECT_GUI *data, GUI_MSG *msg)
 {
     if ((msg->gbsmsg->msg==KEY_DOWN)||(msg->gbsmsg->msg==LONG_PRESS))
     {
@@ -244,11 +242,6 @@ int method5_rect(RECT_GUI *data, GUI_MSG *msg)
 }
 extern "C" void kill_data(void *p, void (*func_p)(void *));
 
-void method7_rect(RECT_GUI *data, void (*mfree_adr)(void *))
-{
-    kill_data(data,mfree_adr);
-}
-
 int method8_rect(void)
 {
     return(0);
@@ -261,14 +254,14 @@ int method9_rect(void)
 
 const void * const gui_methods_rect[11]=
 {
-    (void *)method0_rect,	//Redraw
-    (void *)method1_rect,	//Create
-    (void *)method2_rect,	//Close
-    (void *)method3_rect,	//Focus
-    (void *)method4_rect,	//Unfocus
-    (void *)method5_rect,	//OnKey
+    (void *)OnReadraw_rect,	//Redraw
+    (void *)OnCreate_rect,	//Create
+    (void *)OnClose_rect,	//Close
+    (void *)OnFocus_rect,	//Focus
+    (void *)OnUnfocus_rect,	//Unfocus
+    (void *)OnKey_rect,	//OnKey
     0,
-    (void *)method7_rect,	//Destroy
+    (void *)kill_data,	//Destroy
     (void *)method8_rect,
     (void *)method9_rect,
     0
@@ -338,7 +331,6 @@ void Free_FLIST(void)
 }
 
 enum TYPES {IS_BACK, IS_FOLDER, IS_FILE};
-const char back[]="..";
 
 
 int strcmp_nocase(const char *s, const char *d)
